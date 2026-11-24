@@ -1,0 +1,32 @@
+CÀI NHẬT KÝ CÔNG TRÌNH LÊN IPHONE / ANDROID
+
+BƯỚC 1 - Đưa 5 tệp lên web (https), chọn 1 cách:
+ a) GitHub Pages: tạo repo -> tải tất cả tệp trong thư mục này lên -> Settings > Pages > Deploy from branch (main).
+ b) Netlify: vào app.netlify.com/drop, kéo thả cả thư mục.
+ c) Máy chủ web nội bộ của công ty có https.
+ => Bạn nhận được một đường link, ví dụ https://ten.github.io/nhatky/
+
+BƯỚC 2 - Cài trên điện thoại (mở link bằng trình duyệt):
+ iPhone (bắt buộc dùng Safari): nút Chia sẻ -> "Thêm vào Màn hình chính".
+ Android (Chrome): menu ⋮ -> "Cài đặt ứng dụng" / "Thêm vào màn hình chính".
+
+Sau khi cài, mở từ biểu tượng ngoài màn hình chính; chạy được cả khi không có mạng.
+Nên bấm Cài đặt -> "Sao lưu toàn bộ (ZIP)" định kỳ.
+
+CHIA SẺ / NHẬN CHIA SẺ (Zalo, WhatsApp...)
+ - Gửi đi: bấm biểu tượng chia sẻ trên thẻ nhật ký hoặc trong form; ở tab Báo cáo có "Chia sẻ qua Zalo / WhatsApp". Chọn "Gửi ảnh + nội dung" hoặc "Gửi văn bản", ứng dụng mở bảng chia sẻ của điện thoại để chọn Zalo/WhatsApp.
+ - Nhận về (Android, sau khi cài ứng dụng ra màn hình chính từ Chrome): trong Zalo/WhatsApp/Thư viện bấm Chia sẻ -> "Nhật ký CT". Ảnh/video/văn bản vào form nhật ký mới; tệp ZIP/JSON sao lưu sẽ được nhập.
+ - iPhone chưa hỗ trợ nhận chia sẻ trực tiếp: lưu ảnh vào Thư viện hoặc tệp vào ứng dụng Tệp, rồi dùng "Thư viện" trong form hoặc "Nhập dữ liệu".
+
+CHI TIÊU & TẠM ỨNG CÁ NHÂN
+ - Tab "Chi tiêu" (hoặc nút + giữa -> Ghi chi tiêu / Nhận tạm ứng): nhập số tiền, hạng mục, nội dung, ngày, dự án và chụp hoá đơn.
+ - Số dư = tổng tạm ứng nhận - tổng đã chi. Nếu âm, ứng dụng ghi "Công ty cần hoàn lại bạn".
+ - Báo cáo có thể kèm bảng chi tiêu & tạm ứng (tích chọn ở tab Báo cáo). Excel có thêm 2 trang tính "Chi tiêu - Tạm ứng" và "Tổng hợp chi tiêu". ZIP/sao lưu chứa cả hoá đơn.
+ - Tab Dự án đã chuyển vào "Cài đặt".
+
+ĐỒNG BỘ SHAREPOINT (MỚI)
+- Cài đặt > "Đồng bộ SharePoint": nhập Tenant ID, Client ID, địa chỉ site (IT cung cấp), bấm Lưu cấu hình, rồi Đăng nhập Microsoft 365.
+- Mỗi người có thư mục riêng: NhatKy/<Tên - tài khoản>/<Dự án>/<ngày_mã>/ (nhat_ky.json + ảnh/video), chi tiêu trong ChiTieu/.
+- Đồng bộ tự động sau khi lưu và khi có mạng; hoặc bấm nút ⟳ trên thanh đầu / "Đồng bộ ngay".
+- Đồng bộ một chiều (điện thoại lên SharePoint). Xoá trên điện thoại không xoá trên SharePoint.
+- Ứng dụng phải chạy từ địa chỉ https. Redirect URI cần đăng ký (loại SPA) hiển thị trong mục cấu hình.
