@@ -37,3 +37,9 @@ BÁO CÁO MỚI: MẪU, BỐ CỤC, HẠNG MỤC
 - Logo: tải logo công ty (PNG nền trong) và đặt tên công ty (ví dụ PEJA) trong cùng bảng; chọn vị trí và cỡ logo.
 - Form nhật ký: thời tiết chọn nhiều (Mưa to + Gió lớn), chip mẫu nhanh cho hoạt động/vấn đề/đề xuất (có nút ＋ để thêm hoặc xoá), và mục "Hạng mục công việc" với % hoàn thành. Nút "Lấy từ hôm trước" chép danh sách hạng mục.
 - Ảnh thêm từ Thư viện: ngày nhật ký tự điền theo ngày chụp trong dữ liệu ảnh (EXIF). Chất lượng ảnh lưu chọn trong Cài đặt > Ảnh chụp.
+
+ẢNH THEO HẠNG MỤC, SỰ CỐ VÀ NỘI DUNG KHÁC (MỚI)
+- Mỗi hạng mục công việc có nút Chụp ảnh / Thư viện riêng; ảnh hiện dưới hạng mục đó trong báo cáo.
+- Mục "Vấn đề" có thêm khung "Ảnh sự cố / vấn đề".
+- Mục "Nội dung khác": bấm chip tiêu đề mẫu (An toàn lao động, Vật tư nhập về, Nghiệm thu…) hoặc "＋ Mục trống" để thêm mục riêng, mỗi mục có chữ và ảnh. Bấm ＋ cuối hàng để thêm hoặc xoá tiêu đề mẫu.
+- Báo cáo: trong "Mẫu & bố cục" có thể bật/tắt "Ảnh theo từng hạng mục", "Ảnh sự cố / vấn đề" và "Nội dung khác".
