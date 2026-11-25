@@ -43,3 +43,7 @@ BÁO CÁO MỚI: MẪU, BỐ CỤC, HẠNG MỤC
 - Mục "Vấn đề" có thêm khung "Ảnh sự cố / vấn đề".
 - Mục "Nội dung khác": bấm chip tiêu đề mẫu (An toàn lao động, Vật tư nhập về, Nghiệm thu…) hoặc "＋ Mục trống" để thêm mục riêng, mỗi mục có chữ và ảnh. Bấm ＋ cuối hàng để thêm hoặc xoá tiêu đề mẫu.
 - Báo cáo: trong "Mẫu & bố cục" có thể bật/tắt "Ảnh theo từng hạng mục", "Ảnh sự cố / vấn đề" và "Nội dung khác".
+
+THỜI GIAN LÀM VIỆC (MỚI)
+- Form nhật ký: chọn nhanh Hành chính / Ca sáng / Ca chiều / Ca đêm hoặc tự nhập giờ bắt đầu, kết thúc và số phút nghỉ. Ứng dụng tự tính tổng giờ (ca qua đêm cũng đúng) và nhớ giờ lần trước cho nhật ký mới.
+- Báo cáo: có dòng "Thời gian làm việc" mỗi ngày và ô "Giờ làm việc" tổng trong số liệu tổng hợp; tắt/bật trong "Mẫu & bố cục". Excel/CSV có thêm 4 cột giờ.

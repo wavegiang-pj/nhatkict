@@ -250,6 +250,16 @@ async function dropBlock(tag,label,has){
 async function delExtra(i){const x=curExtras[i];if(await dropBlock('x:'+x.id,'mục này',x.t||x.x)){curExtras.splice(i,1);drawMedia()}}
 async function delTask(i){const t=curTasks[i];if(await dropBlock('t:'+t.id,'hạng mục này',t.n)){curTasks.splice(i,1);drawMedia()}}
 
+
+/* ---------- Thời gian làm việc ---------- */
+const WTP=[['Hành chính','07:30','17:00',60],['Ca sáng','06:00','12:00',0],['Ca chiều','13:00','18:00',0],['Ca đêm','19:00','05:00',60]];
+function hrsOf(e){if(!e||!e.ts||!e.te)return null;const f=v=>{const[a,b]=v.split(':').map(Number);return a*60+b};let d=f(e.te)-f(e.ts);if(d<=0)d+=1440;d-=(+e.tb||0);return d>0?Math.round(d/60*100)/100:0}
+const fmtH=h=>String(h).replace('.',',')+' giờ';
+const wtTxt=e=>e.ts&&e.te?e.ts+' – '+e.te+((+e.tb)?' (nghỉ '+e.tb+' phút)':''):'';
+function updWT(){const e={ts:$('#e_ts').value,te:$('#e_te').value,tb:$('#e_tb').value},h=hrsOf(e),t=$('#wtt');if(t)t.innerHTML=h===null?'Nhập giờ bắt đầu và kết thúc để tính tổng giờ làm.':`Tổng thời gian làm việc: <b>${fmtH(h)}</b>${(e.te<=e.ts?' (qua đêm)':'')}`;document.querySelectorAll('#wtp .chip2').forEach(b=>b.classList.toggle('on',b.dataset.k===e.ts+'|'+e.te+'|'+(+e.tb||0)))}
+function setWT(i){const[,a,b,c]=WTP[i];$('#e_ts').value=a;$('#e_te').value=b;$('#e_tb').value=c;updWT()}
+function clearWT(){$('#e_ts').value='';$('#e_te').value='';$('#e_tb').value='0';updWT()}
+
 /* ngày chụp từ dữ liệu ảnh (EXIF) */
 function exifTaken(buf){
  const v=new DataView(buf);if(v.byteLength<12||v.getUint16(0)!==0xFFD8)return null;
@@ -378,7 +388,7 @@ function list(){
  $('#lst').innerHTML=arr.map(e=>{const th=e.thumbs||[],tot=(e.ni||0)+(e.nv||0);
   return `<div class="ent sv${e.issues?(e.severity||0):0}" onclick="openEntry('${e.id}')">
   <div class="dt"><b>${e.date.slice(8)}</b><span>${SH[parseD(e.date).getDay()]}</span></div>
-  <div class="bd"><div class="tp"><span class="chip">${esc(pname(e.projectId))}</span><span class="wx">${wSplit(e.weather).map(wIcon).join('')} ${esc(e.weather||'')}</span></div>
+  <div class="bd"><div class="tp"><span class="chip">${esc(pname(e.projectId))}</span><span class="wx">${wSplit(e.weather).map(wIcon).join('')} ${esc(e.weather||'')}</span>${hrsOf(e)!==null?`<span class="wx">⏱ ${fmtH(hrsOf(e))}</span>`:''}</div>
   <div class="tx">${esc(e.activities||'(Không có mô tả hoạt động)')}</div>
   <div class="bg2">${e.issues?`<span class="bdg r">${ic('warn',13)} Vấn đề · ${SEV[e.severity||0]}</span>`:''}${e.suggestions?`<span class="bdg o">${ic('bulb',13)} Đề xuất</span>`:''}${e.nv?`<span class="bdg">${ic('video',13)} ${e.nv}</span>`:''}<button class="ib shb" aria-label="Chia sẻ" onclick="event.stopPropagation();shareSaved('${e.id}')">${ic('share',17)}</button></div>
   ${th.length?`<div class="ths">${th.map(u=>`<img src="${u}" alt="">`).join('')}${(e.ni||0)>th.length?`<div class="more">+${e.ni-th.length}</div>`:''}</div>`:''}</div></div>`}).join('')
@@ -427,12 +437,14 @@ function optMgr(){
 function setChip(id,el){$('#'+id).value=el.dataset.v;el.parentNode.querySelectorAll('.chip2').forEach(c=>c.classList.toggle('on',c===el))}
 async function openEntry(id,pre){
  if(!projects.length){toast('Hãy tạo dự án trước');go('set');return}
- const e=id?entries.find(x=>x.id===id):{id:uid(),projectId:F.project||projects[0].id,date:iso(new Date()),weather:'Nắng',location:'',crew:'',activities:'',issues:'',severity:'0',suggestions:'',tasks:[],extras:[],created:Date.now()};
+ const e=id?entries.find(x=>x.id===id):{id:uid(),projectId:F.project||projects[0].id,date:iso(new Date()),weather:'Nắng',location:'',crew:'',activities:'',issues:'',severity:'0',suggestions:'',tasks:[],extras:[],ts:(S.wt||{}).ts||'',te:(S.wt||{}).te||'',tb:(S.wt||{}).tb||0,created:Date.now()};
  cur=id?(await mediaOf(id)).sort((a,b)=>a.order-b.order):[];removed=[];curTasks=(e.tasks||[]).map(t=>({...t,id:t.id||uid()}));curExtras=(e.extras||[]).map(x=>({...x}));addTag='';formNew=!id;
  openSheet(id?'Sửa nhật ký':'Nhật ký mới',`
  <div class="sec"><div class="sh">${ic('folder')}Thông tin chung</div>
   <label>Dự án</label><select id="e_p">${projOpts(e.projectId)}</select>
   <div class="row2"><div><label>Ngày</label><input type="date" id="e_d" value="${e.date}"></div><div><label>Nhân lực / thiết bị</label><input id="e_c" value="${esc(e.crew)}" placeholder="VD: 12 CN, 2 máy xúc"></div></div>
+  <label>Thời gian làm việc</label><div class="chips" id="wtp">${WTP.map((w,i)=>`<button type="button" class="chip2" data-k="${w[1]}|${w[2]}|${w[3]}" onclick="setWT(${i})">${w[0]}<small style="opacity:.65"> ${w[1]}–${w[2]}</small></button>`).join('')}<button type="button" class="chip2" onclick="clearWT()">Xoá</button></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div><label style="margin-top:6px">Bắt đầu</label><input type="time" id="e_ts" value="${e.ts||''}" oninput="updWT()"></div><div><label style="margin-top:6px">Kết thúc</label><input type="time" id="e_te" value="${e.te||''}" oninput="updWT()"></div><div><label style="margin-top:6px">Nghỉ (phút)</label><input type="number" inputmode="numeric" min="0" step="5" id="e_tb" value="${e.tb||0}" oninput="updWT()"></div></div><div class="hint" id="wtt" style="margin-top:6px"></div>
   <label>Thời tiết</label>${chipsM('e_w',e.weather)}
   <label>Vị trí / hạng mục</label><div class="rowg"><input id="e_l" value="${esc(e.location)}" placeholder="VD: Trục A–C, tầng 3"><button class="btn sec sm" onclick="gps()">${ic('pin',18)} GPS</button></div></div>
  <div class="sec"><div class="sh">${ic('camera')}Hình ảnh &amp; video<span class="cnt" id="mcnt"></span></div>
@@ -445,7 +457,7 @@ async function openEntry(id,pre){
  <div class="sec"><div class="sh">${ic('plus')}Nội dung khác<span class="cnt" id="xcnt"></span></div><p class="hint" style="margin-top:0">Thêm mục riêng khi cần (an toàn lao động, vật tư nhập, nghiệm thu…). Mỗi mục có thể kèm ảnh. Bấm ＋ để tự thêm tiêu đề mẫu.</p><input type="hidden" id="q_qx"><div class="chips qk"></div><div id="xt"></div></div>
  <div class="stickybar">${id?`<button class="btn red" onclick="delEntry('${e.id}')">${ic('trash')}</button>`:''}<button class="btn big" onclick="saveEntry('${e.id}',${e.created})">${ic('check')} Lưu nhật ký</button></div>`,
  `<button class="ib w" style="display:inline-grid;margin-right:6px" onclick="shareCurrent()" aria-label="Chia sẻ">${ic('share',20)}</button><button class="btn ac sm" onclick="saveEntry('${e.id}',${e.created})">Lưu</button>`);
- drawMedia();drawTasks();['qa','qi','qg','qx'].forEach(k=>refreshChips(k,'q_'+k));
+ drawMedia();drawTasks();['qa','qi','qg','qx'].forEach(k=>refreshChips(k,'q_'+k));updWT();
  if(pre){if(pre.text)$('#e_a').value=pre.text;if(pre.files&&pre.files.length)await addFiles(pre.files)}
 }
 const mtHTML=(m,i)=>{const u=URL.createObjectURL(m.blob);curUrls.push(u);
@@ -482,13 +494,14 @@ async function addFiles(files){
 ['fCam','fVid','fGal'].forEach(id=>$('#'+id).onchange=async e=>{const f=[...e.target.files];e.target.value='';if(f.length)await addFiles(f)});
 function gps(){if(!navigator.geolocation)return toast('Thiết bị không hỗ trợ GPS');toast('Đang lấy vị trí…');navigator.geolocation.getCurrentPosition(p=>{const v=$('#e_l');v.value=(v.value?v.value+' ':'')+'['+p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5)+']';toast('Đã chèn toạ độ')},()=>toast('Không lấy được vị trí'),{enableHighAccuracy:true,timeout:12000})}
 async function saveEntry(id,created){
- const e={id,projectId:$('#e_p').value,date:$('#e_d').value,weather:$('#e_w').value,crew:$('#e_c').value.trim(),location:$('#e_l').value.trim(),activities:$('#e_a').value.trim(),issues:$('#e_i').value.trim(),severity:$('#e_s').value,suggestions:$('#e_g').value.trim(),tasks:curTasks.filter(t=>t.n.trim()).map(t=>({id:t.id,n:t.n.trim(),p:Math.max(0,Math.min(100,+t.p||0))})),extras:curExtras.filter(x=>x.t.trim()||x.x.trim()||cur.some(m=>m.tag==='x:'+x.id)).map(x=>({id:x.id,t:x.t.trim()||'Nội dung khác',x:x.x.trim()})),created,updated:Date.now()};
+ const e={id,projectId:$('#e_p').value,date:$('#e_d').value,weather:$('#e_w').value,crew:$('#e_c').value.trim(),location:$('#e_l').value.trim(),activities:$('#e_a').value.trim(),issues:$('#e_i').value.trim(),severity:$('#e_s').value,suggestions:$('#e_g').value.trim(),tasks:curTasks.filter(t=>t.n.trim()).map(t=>({id:t.id,n:t.n.trim(),p:Math.max(0,Math.min(100,+t.p||0))})),ts:$('#e_ts').value,te:$('#e_te').value,tb:+$('#e_tb').value||0,extras:curExtras.filter(x=>x.t.trim()||x.x.trim()||cur.some(m=>m.tag==='x:'+x.id)).map(x=>({id:x.id,t:x.t.trim()||'Nội dung khác',x:x.x.trim()})),created,updated:Date.now()};
  const okTag=new Set(['','i',...e.tasks.map(t=>'t:'+t.id),...e.extras.map(x=>'x:'+x.id)]);cur.forEach(m=>{if(!okTag.has(m.tag||''))m.tag=''});
  if(!e.date)return toast('Chọn ngày');
  if(!e.activities&&!e.issues&&!e.suggestions&&!cur.length&&!e.tasks.length&&!e.extras.length)return toast('Nhập nội dung hoặc thêm ảnh');
  toast('Đang lưu…',5000);
  const imgs=cur.filter(m=>m.type==='image');e.ni=imgs.length;e.nv=cur.length-imgs.length;e.thumbs=[];
  for(const m of imgs.slice(0,3)){const t=await thumbOf(m.blob);if(t)e.thumbs.push(t)}
+ if(e.ts&&e.te){S.wt={ts:e.ts,te:e.te,tb:e.tb};saveS()}
  await dbPut('entries',e);
  for(const id2 of removed)await dbDel('media',id2);
  for(let i=0;i<cur.length;i++){const m=cur[i];m.entryId=id;m.order=i;m.saved=1;await dbPut('media',m)}
@@ -623,7 +636,7 @@ async function pdfReport(){await showReport();setTimeout(doPrint,700)}
 
 let rvUrls=[],lastParts=[];
 /* ---------- Mẫu & bố cục báo cáo ---------- */
-const RPD={tpl:'modern',accent:'#1b5fd6',font:'sans',layout:'g2',radius:10,icons:true,caps:true,nums:true,logoPos:'left',logoH:46,wq:'bal',logo:'',parts:{info:1,stats:1,weather:1,crew:1,loc:1,tasks:1,acts:1,issues:1,sugg:1,photos:1,taskph:1,issueph:1,extras:1,videos:1,summary:1,tasksum:1,sign:1}};
+const RPD={tpl:'modern',accent:'#1b5fd6',font:'sans',layout:'g2',radius:10,icons:true,caps:true,nums:true,logoPos:'left',logoH:46,wq:'bal',logo:'',parts:{info:1,stats:1,weather:1,crew:1,loc:1,tasks:1,acts:1,issues:1,sugg:1,time:1,photos:1,taskph:1,issueph:1,extras:1,videos:1,summary:1,tasksum:1,sign:1}};
 const RP=()=>{const r=S.rp||{};return {...RPD,...r,parts:{...RPD.parts,...(r.parts||{})}}};
 const TPL={
  classic:{name:'Cổ điển',desc:'Khung viền, kiểu biên bản',font:'serif',radius:0,layout:'g2',accent:'#1f4e8c',icons:false},
@@ -635,7 +648,7 @@ const TSVG={
  modern:'<svg viewBox="0 0 80 56"><rect x="6" y="5" width="68" height="46" rx="4" fill="#fff" stroke="#e5e7eb"/><rect x="10" y="9" width="60" height="8" rx="4" fill="#1b5fd6"/><rect x="10" y="21" width="60" height="4" rx="2" fill="#e5e7eb"/><rect x="10" y="28" width="60" height="4" rx="2" fill="#e5e7eb"/><rect x="10" y="36" width="28" height="12" rx="3" fill="#bcd2f5"/><rect x="42" y="36" width="28" height="12" rx="3" fill="#bcd2f5"/></svg>',
  compact:'<svg viewBox="0 0 80 56"><rect x="6" y="5" width="68" height="46" fill="#fff" stroke="#ddd"/><path d="M10 12h40" stroke="#0f766e" stroke-width="1.5"/><path d="M10 17h60M10 21h60M10 25h60M10 29h50" stroke="#aaa" stroke-width=".8"/><rect x="10" y="35" width="18" height="12" fill="#b7e0da"/><rect x="31" y="35" width="18" height="12" fill="#b7e0da"/><rect x="52" y="35" width="18" height="12" fill="#b7e0da"/></svg>',
  photo:'<svg viewBox="0 0 80 56"><rect x="6" y="5" width="68" height="46" rx="5" fill="#fff" stroke="#e5e7eb"/><rect x="10" y="9" width="60" height="22" rx="6" fill="#f5c9b0"/><rect x="10" y="35" width="18" height="12" rx="4" fill="#f5c9b0"/><rect x="31" y="35" width="18" height="12" rx="4" fill="#f5c9b0"/><rect x="52" y="35" width="18" height="12" rx="4" fill="#f5c9b0"/></svg>'};
-const PARTL=[['info','Thông tin dự án'],['stats','Số liệu tổng hợp (ngày, ảnh, video)'],['weather','Thời tiết'],['crew','Nhân lực / thiết bị'],['loc','Vị trí'],['tasks','Hạng mục công việc (tiến độ)'],['acts','Hoạt động'],['issues','Vấn đề'],['sugg','Đề xuất'],['photos','Hình ảnh chung'],['taskph','Ảnh theo từng hạng mục'],['issueph','Ảnh sự cố / vấn đề'],['extras','Nội dung khác'],['videos','Danh sách video'],['summary','Bảng tổng hợp vấn đề & đề xuất'],['tasksum','Tổng hợp tiến độ hạng mục cả kỳ'],['sign','Ô ký tên']];
+const PARTL=[['info','Thông tin dự án'],['stats','Số liệu tổng hợp (ngày, ảnh, video)'],['weather','Thời tiết'],['time','Thời gian làm việc'],['crew','Nhân lực / thiết bị'],['loc','Vị trí'],['tasks','Hạng mục công việc (tiến độ)'],['acts','Hoạt động'],['issues','Vấn đề'],['sugg','Đề xuất'],['photos','Hình ảnh chung'],['taskph','Ảnh theo từng hạng mục'],['issueph','Ảnh sự cố / vấn đề'],['extras','Nội dung khác'],['videos','Danh sách video'],['summary','Bảng tổng hợp vấn đề & đề xuất'],['tasksum','Tổng hợp tiến độ hạng mục cả kỳ'],['sign','Ô ký tên']];
 const LAYL=[['g1','1 ảnh / hàng'],['g2','2 cột'],['g3','3 cột'],['hero','Ảnh lớn + 3 cột']];
 const ACOL=['#1b5fd6','#0f766e','#c2410c','#7c3aed','#be123c','#334155'];
 function rpSet(p){S.rp={...RP(),...p};saveS();const b=$('#shB'),y=$('#sheet').scrollTop;if(b){b.innerHTML=rpBody();$('#sheet').scrollTop=y}}
@@ -712,13 +725,13 @@ ${q('.kpi td')}{background:${T};text-align:center}`;
  c+=`\n${q('.pg img')}{border-radius:${r}${u}}${q('.logo')}{border-radius:${Math.min(r,10)}${u}}`;
  return c
 }
-const RIC={date:'📅',info:'📋',crew:'👷',loc:'📍',tasks:'📊',acts:'✅',issues:'⚠️',sugg:'💡',photos:'📷',video:'🎬',exp:'💰',sum:'📈',stat:'📈'};
+const RIC={time:'⏱️',date:'📅',info:'📋',crew:'👷',loc:'📍',tasks:'📊',acts:'✅',issues:'⚠️',sugg:'💡',photos:'📷',video:'🎬',exp:'💰',sum:'📈',stat:'📈'};
 function reportHTML(data,mode,parts,ex){
  const o=RP(),P=o.parts,I=k=>o.icons?RIC[k]+' ':'',isW=mode==='mht',pr=R.project?projects.find(p=>p.id===R.project):null;
  const src=m=>{if(isW){parts.push(m);return 'img/'+m.id+'.jpg'}const u=URL.createObjectURL(m.blob);rvUrls.push(u);return u};
  const bar=p=>{p=Math.max(0,Math.min(100,+p||0));const c=p>=100?'#16a34a':o.accent;return `<table class="pbar" border="0" cellspacing="0" cellpadding="0" style="width:100%"><tr>${p?`<td style="width:${p}%;height:10px;background:${c}">&nbsp;</td>`:''}${p<100?`<td style="width:${100-p}%;height:10px;background:#e5e7eb">&nbsp;</td>`:''}</tr></table>`};
  const imgs=data.reduce((n,e)=>n+e.media.filter(m=>m.type==='image').length,0),vids=data.reduce((n,e)=>n+e.media.filter(m=>m.type==='video').length,0);
- const days=new Set(data.map(e=>e.date)).size,iss=data.filter(e=>e.issues).length;
+ const days=new Set(data.map(e=>e.date)).size,iss=data.filter(e=>e.issues).length,hrsT=Math.round(data.reduce((n,e)=>n+(hrsOf(e)||0),0)*100)/100;
  let logo='';
  if(o.logo){if(isW&&LOGOBLOB){parts.push({id:'logo',mime:'image/png',blob:LOGOBLOB});logo=`<img class="logo" src="img/logo.jpg" height="${o.logoH}">`}else if(!isW)logo=`<img class="logo" src="${o.logo}" style="height:${o.logoH}px">`}
  const co=S.company?`<b class="co">${esc(S.company.toUpperCase())}</b>`:'',cell=(al,x)=>x?`<td style="width:1%;white-space:nowrap;text-align:${al}">${x}</td>`:'';
@@ -726,7 +739,7 @@ function reportHTML(data,mode,parts,ex){
  if(P.info)h+=`<table class="in"><tr><td class="k">${I('info')}Dự án</td><td>${esc(pr?pr.name:'Tất cả dự án')}${pr&&pr.code?' ('+esc(pr.code)+')':''}</td></tr>
  ${pr&&pr.client?`<tr><td class="k">Chủ đầu tư</td><td>${esc(pr.client)}</td></tr>`:''}${pr&&pr.address?`<tr><td class="k">Địa điểm</td><td>${esc(pr.address)}</td></tr>`:''}
  <tr><td class="k">Người lập</td><td>${esc(S.author)}${S.position?' – '+esc(S.position):''}</td></tr></table>`;
- if(P.stats)h+=`<table class="kpi nb" border="0"><tr><td><b>${days}</b><br>Ngày có nhật ký</td><td><b>${iss}</b><br>Có vấn đề</td><td><b>${imgs}</b><br>Ảnh</td><td><b>${vids}</b><br>Video</td></tr></table>`;
+ if(P.stats)h+=`<table class="kpi nb" border="0"><tr><td><b>${days}</b><br>Ngày có nhật ký</td><td><b>${iss}</b><br>Có vấn đề</td><td><b>${imgs}</b><br>Ảnh</td><td><b>${vids}</b><br>Video</td>${P.time&&hrsT?`<td><b>${String(hrsT).replace('.',',')}</b><br>Giờ làm việc</td>`:''}</tr></table>`;
  if(!data.length)h+='<p><i>Không có nhật ký trong kỳ này.</i></p>';
  const nc=o.layout==='g1'?1:o.layout==='g3'||o.layout==='hero'?3:2,wpx=n=>Math.floor((600-(n-1)*8)/n);
  const grid=(im,i,cn)=>{
@@ -740,6 +753,7 @@ function reportHTML(data,mode,parts,ex){
   const wt=wSplit(e.weather);
   h+=`<div class="dh">${I('date')}${i+1}. ${wd(e.date)}, ${vn(e.date)}${R.project?'':' – '+esc(pname(e.projectId))}${P.weather&&wt.length?`<span class="wx"> &nbsp; ${wt.map(w=>(o.icons?wIcon(w)+' ':'')+esc(w)).join(' · ')}</span>`:''}</div>`;
   const rs=[];
+  if(P.time&&e.ts&&e.te)rs.push(`<tr><td class="k">${I('time')}Thời gian làm việc</td><td>${wtTxt(e)} · <b>${fmtH(hrsOf(e))}</b></td></tr>`);
   if(P.crew&&e.crew)rs.push(`<tr><td class="k">${I('crew')}Nhân lực/thiết bị</td><td>${esc(e.crew)}</td></tr>`);
   if(P.loc&&e.location)rs.push(`<tr><td class="k">${I('loc')}Vị trí</td><td>${esc(e.location)}</td></tr>`);
   if(P.acts)rs.push(`<tr><td class="k">${I('acts')}Hoạt động</td><td>${nl(e.activities)||'—'}</td></tr>`);
@@ -801,13 +815,13 @@ async function saveBlob(blob,name){
 }
 
 /* --- bảng dữ liệu thô --- */
-const HEAD=['Ngày','Thứ','Dự án','Mã dự án','Thời tiết','Vị trí/hạng mục','Nhân lực/thiết bị','Hoạt động','Vấn đề','Mức độ','Đề xuất','Hạng mục công việc (%)','Nội dung khác','Số ảnh','Số video','Tệp đính kèm','Người ghi'];
-function rowsOf(data){return[HEAD].concat(data.map(e=>{const p=projects.find(x=>x.id===e.projectId)||{};return[vn(e.date),wd(e.date),p.name||'',p.code||'',e.weather||'',e.location||'',e.crew||'',e.activities||'',e.issues||'',e.issues?SEV[e.severity||0]:'',e.suggestions||'',(e.tasks||[]).map(t=>t.n+' '+t.p+'%').join('\n'),(e.extras||[]).map(x=>x.t+': '+x.x).join('\n'),e.media.filter(m=>m.type==='image').length,e.media.filter(m=>m.type==='video').length,e.media.map(m=>mediaPath(e,m)).join('\n'),S.author||'']}))}
+const HEAD=['Ngày','Thứ','Dự án','Mã dự án','Thời tiết','Vị trí/hạng mục','Nhân lực/thiết bị','Giờ bắt đầu','Giờ kết thúc','Nghỉ (phút)','Tổng giờ làm','Hoạt động','Vấn đề','Mức độ','Đề xuất','Hạng mục công việc (%)','Nội dung khác','Số ảnh','Số video','Tệp đính kèm','Người ghi'];
+function rowsOf(data){return[HEAD].concat(data.map(e=>{const p=projects.find(x=>x.id===e.projectId)||{};return[vn(e.date),wd(e.date),p.name||'',p.code||'',e.weather||'',e.location||'',e.crew||'',e.ts||'',e.te||'',e.ts?(e.tb||0):'',hrsOf(e)===null?'':hrsOf(e),e.activities||'',e.issues||'',e.issues?SEV[e.severity||0]:'',e.suggestions||'',(e.tasks||[]).map(t=>t.n+' '+t.p+'%').join('\n'),(e.extras||[]).map(x=>x.t+': '+x.x).join('\n'),e.media.filter(m=>m.type==='image').length,e.media.filter(m=>m.type==='video').length,e.media.map(m=>mediaPath(e,m)).join('\n'),S.author||'']}))}
 const mediaPath=(e,m)=>'media/'+e.date+'/'+m.id+'.'+(m.ext||'jpg');
 async function dlCsv(){const rows=rowsOf(await gather());const csv='﻿'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');await saveBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),fname('csv'))}
 const xe=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function xlsxFiles(arg){
- const sheets=Array.isArray(arg[0])?[{name:'Nhật ký',rows:arg,w:[11,11,22,10,11,20,20,50,40,11,40,36,36,8,8,40,16]}]:arg;
+ const sheets=Array.isArray(arg[0])?[{name:'Nhật ký',rows:arg,w:[11,11,22,10,11,20,20,9,9,9,9,50,40,11,40,36,36,8,8,40,16]}]:arg;
  const col=i=>String.fromCharCode(65+i),X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',en=new TextEncoder(),f=(n,t)=>({name:n,data:en.encode(X+t)});
  const sx=(sh,k)=>{const rows=sh.rows,sr=rows.map((r,ri)=>`<row r="${ri+1}">`+r.map((v,ci)=>{const ref=col(ci)+(ri+1),s=ri?(typeof v==='number'?3:2):1;return typeof v==='number'?`<c r="${ref}" s="${s}"><v>${v}</v></c>`:`<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xe(v)}</t></is></c>`}).join('')+'</row>').join('');
   return f('xl/worksheets/sheet'+(k+1)+'.xml',`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${sh.w.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${sr}</sheetData>${sh.nf?'':`<autoFilter ref="A1:${col(rows[0].length-1)}${rows.length}"/>`}</worksheet>`)};
@@ -894,7 +908,7 @@ async function seedDemo(){
  {d:0,t:[{n:'Cốt thép dầm D2',p:90},{n:'Bơm nước hố móng T3',p:100}],w:'Nhiều mây',c:'20 CN, 2 máy xúc',l:'Dầm D2',a:'Khắc phục sau mưa, bơm cạn hố móng T3, kiểm tra lại ván khuôn dầm D2.',i:'Mặt bằng còn bùn, vận chuyển vật tư khó khăn.',s:2,g:'Đề nghị đổ lớp đá dăm tạm 30 m đường công vụ.',p:[['crane','Máy xúc dọn mặt bằng']]}];
  let k=0;for(const r of D){const id=uid(),th=[],tids=(r.t||[]).map(z=>({id:uid(),...z}));let order=0;
   for(const[kind,cap,tg]of r.p){const blob=await scene(kind,cap);await dbPut('media',{id:uid(),entryId:id,type:'image',mime:'image/jpeg',ext:'jpg',name:kind+'.jpg',blob,caption:cap,order:order++,tag:tg==='i'?'i':tg&&tg[0]==='t'?'t:'+(tids[+tg.slice(1)]||{}).id:'',saved:1});const t=await thumbOf(blob);if(t)th.push(t)}
-  await dbPut('entries',{id,projectId:pid,date:iso(addDays(new Date(),r.d)),weather:r.w,crew:r.c,location:r.l,activities:r.a,issues:r.i,severity:String(r.s),suggestions:r.g,tasks:tids,extras:(r.x||[]).map(z=>({id:uid(),...z})),created:Date.now()+k++,ni:th.length,nv:0,thumbs:th})}
+  await dbPut('entries',{id,projectId:pid,date:iso(addDays(new Date(),r.d)),weather:r.w,crew:r.c,location:r.l,activities:r.a,issues:r.i,severity:String(r.s),suggestions:r.g,ts:'07:30',te:r.d===-1?'16:00':'17:00',tb:60,tasks:tids,extras:(r.x||[]).map(z=>({id:uid(),...z})),created:Date.now()+k++,ni:th.length,nv:0,thumbs:th})}
  await seedExp(pid);
  await load();F.month=iso(new Date()).slice(0,7);X.month=F.month;go('log');toast('Đã nạp dữ liệu mẫu')
 }
@@ -1018,7 +1032,7 @@ const shOpts=()=>Object.assign({},SHDEF,S.shareOpts||{});
 function entryText(e,caps,o){
  o=o||shOpts();const p=projects.find(x=>x.id===e.projectId)||{};
  let t='📒 NHẬT KÝ CÔNG TRÌNH\nDự án: '+(p.name||'')+(p.code?' ('+p.code+')':'')+'\nNgày: '+wd(e.date)+', '+vn(e.date)+((o.info&&e.weather)?' · '+e.weather:'')+'\n';
- if(o.info){if(e.location)t+='Vị trí: '+e.location+'\n';if(e.crew)t+='Nhân lực/thiết bị: '+e.crew+'\n'}
+ if(o.info){if(e.location)t+='Vị trí: '+e.location+'\n';if(e.crew)t+='Nhân lực/thiết bị: '+e.crew+'\n';if(hrsOf(e)!==null)t+='Thời gian làm việc: '+wtTxt(e)+' ('+fmtH(hrsOf(e))+')\n'}
  if(o.act&&e.activities)t+='\n① Hoạt động:\n'+e.activities+'\n';
  if(o.act&&(e.tasks||[]).length)t+='\n📊 Hạng mục:\n'+e.tasks.map(x=>'• '+x.n+': '+x.p+'%').join('\n')+'\n';
  if(o.act&&(e.extras||[]).length)t+='\n'+e.extras.map(x=>'▪ '+x.t+(x.x?': '+x.x:'')).join('\n')+'\n';
