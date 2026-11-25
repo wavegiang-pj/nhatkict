@@ -30,3 +30,10 @@ CHI TIÊU & TẠM ỨNG CÁ NHÂN
 - Đồng bộ tự động sau khi lưu và khi có mạng; hoặc bấm nút ⟳ trên thanh đầu / "Đồng bộ ngay".
 - Đồng bộ một chiều (điện thoại lên SharePoint). Xoá trên điện thoại không xoá trên SharePoint.
 - Ứng dụng phải chạy từ địa chỉ https. Redirect URI cần đăng ký (loại SPA) hiển thị trong mục cấu hình.
+
+BÁO CÁO MỚI: MẪU, BỐ CỤC, HẠNG MỤC
+- Tab Báo cáo > "Mẫu & bố cục": chọn 1 trong 4 mẫu (Cổ điển, Hiện đại, Gọn, Ảnh là chính), màu chủ đạo, kiểu chữ, bật/tắt icon.
+- Bật/tắt từng nội dung báo cáo; chọn bố cục ảnh (1, 2, 3 cột, ảnh lớn + 3 cột), bo góc, chú thích, đánh số hình, chất lượng ảnh trong Word.
+- Logo: tải logo công ty (PNG nền trong) và đặt tên công ty (ví dụ PEJA) trong cùng bảng; chọn vị trí và cỡ logo.
+- Form nhật ký: thời tiết chọn nhiều (Mưa to + Gió lớn), chip mẫu nhanh cho hoạt động/vấn đề/đề xuất (có nút ＋ để thêm hoặc xoá), và mục "Hạng mục công việc" với % hoàn thành. Nút "Lấy từ hôm trước" chép danh sách hạng mục.
+- Ảnh thêm từ Thư viện: ngày nhật ký tự điền theo ngày chụp trong dữ liệu ảnh (EXIF). Chất lượng ảnh lưu chọn trong Cài đặt > Ảnh chụp.
